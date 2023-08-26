@@ -6,6 +6,7 @@ from maintenance.models import MaintenanceCenter
 import pandas as pd
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.db.models import Avg
 
 # Create your models here.
 
@@ -49,14 +50,17 @@ class Car(models.Model):
     
     BODY_CHOICES = (('bus','Bus'),
                     ('convertible','Convertible'),
-                    ('Coupe','coupe'),
+                    ('coupe','Coupe'),
                     ('hatchback','Hatchback'),
                     ('sedan','Sedan'),
                     ('suv','SUV'),
                     ('pick-up','PickUp'),
                     ('truck','Truck'))
+    
     id =  models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     owner = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE, related_name='owned_cars')
+    title = models.CharField(max_length = 200, blank = True)
+    description = models.TextField(blank = True)
     brand = models.CharField(max_length=50, choices=BRAND_CHOICES)
     model = models.CharField('model', max_length=50)
     country = CountryField()
@@ -69,7 +73,7 @@ class Car(models.Model):
     speed = models.PositiveBigIntegerField(blank=True, null=True)
     fuel_mileage = models.PositiveIntegerField(blank=True, null=True)
     Odometer = models.PositiveIntegerField(blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, blank=True, null=True)
     custom = models.CharField(max_length=20, choices=CUSTOM_CHOICES, blank=True, null=True)
     body_type = models.CharField(max_length=20, choices = BODY_CHOICES, blank=True, null=True)
@@ -83,11 +87,14 @@ class Car(models.Model):
     tags = models.ManyToManyField('Tag', related_name='tags', default=None, blank=True)
     tech_and_safety_features = models.ManyToManyField('TechAndSafetyFeatures', related_name='cars', blank=True, default = None)
     maintenance_centers = models.ManyToManyField(MaintenanceCenter, default=None, blank = True, related_name='maintenance_centers')
+    updated = models.DateTimeField(auto_now=True)
+    post_time = models.DateTimeField(default=timezone.now, editable=False)
+    liked_by = models.ManyToManyField(Profile, default=None, blank=True)
 
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(release_year__gte=1900) & models.Q(release_year__lte=current_year + 2), #TODO تخيل صرنا 2025  THIS YEAR + 1
+                check=models.Q(release_year__gte=1900) & models.Q(release_year__lte=current_year + 2), 
                 name="valid_release_year"
             )
         ]
@@ -95,14 +102,40 @@ class Car(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        PriceHistory.objects.create(price=self.price)
+        PriceHistory.objects.create(car=self,price=self.price)
 
+    @property
+    def get_reviews(self):
+        return Review.objects.filter(post=self)
+
+    @property
+    def maintenance_centers_count(self):
+        return self.maintenance_centers.count()
+    
+
+    @property
+    def num_likes(self):
+        return self.liked_by.all().count()
+    
+    @property
+    def similar_cars_count(self):
+        return Car.objects.filter(brand__iexact=self.brand, model__iexact=self.model).exclude(id=self.id).count()
+    
+    @property
+    def review_average(self):
+        average_rating = self.reviews.aggregate(Avg('rating'))['rating__avg']
+        if average_rating is not None:
+            return average_rating
+        return 0
+    
+    @property
+    def num_reviewers(self):
+        num_reviewers = self.reviews.values('user').distinct().count()
+        return num_reviewers
+    
     def __str__(self):
         return f"{self.owner} - {self.brand} {self.model}"
     
-
-
-
 
 class TechAndSafetyFeatures(models.Model):
     feature = models.CharField(max_length=50)
@@ -145,41 +178,12 @@ class NegativeAspect(models.Model):
         return self.name
 
 
-class Post(models.Model):
-    title = models.CharField(max_length = 200, blank = True)
-    author = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL, related_name='owner')
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='post')
-    description = models.TextField(blank = True)
-    liked_by = models.ManyToManyField(Profile, default=None, blank=True)
-    updated = models.DateTimeField(auto_now=True)
-    post_time = models.DateTimeField(default=timezone.now)
-    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-
-    class Meta:
-        ordering=['-post_time']
-        
-    def save(self, *args, **kwargs):
-        if self.author and self.car and self.author != self.car.owner:
-            raise ValidationError("You can only make a post for cars that you own.")
-        super().save(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        if not self.title:
-            self.title = f'{self.car.brand} {self.car.model}'
-        super().save(*args, **kwargs)
-
-    @property
-    def num_likes(self):
-        return self.liked_by.all().count()
-    
-    def __str__(self):
-        return f"{self.title}"
 
 class Review(models.Model):
     RATE_CHOICES = [(rate, rate) for rate in range(1, 6)]
 
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='UserReviews')
-    post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='reviews')
+    post = models.ForeignKey(Car, null=True, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveIntegerField(choices = RATE_CHOICES)
     content = models.TextField(blank=True)
     like = models.BooleanField(default=False)
@@ -188,7 +192,8 @@ class Review(models.Model):
 
     class Meta:
         ordering=['-review_date']
-            
+    
+
     
     def __str__(self):
         return f"{self.user.username} reviewed {self.post.title}"
