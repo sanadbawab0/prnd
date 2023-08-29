@@ -3,7 +3,6 @@ from rest_framework import serializers
 from .models import *
 from maintenance.models import MaintenanceCenter
 
-
 class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
@@ -56,20 +55,14 @@ class CarDetailsSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     maintenance_centers = MaintenanceCenterSerializer(many=True, read_only=True)
     tech_and_safety_features = TechAndSafetyFeaturesSerializer(many=True, read_only=True)
-    maintenance_centers_count = serializers.SerializerMethodField()
-    similar_cars_count = serializers.SerializerMethodField()
+    maintenance_centers_count = serializers.ReadOnlyField()
+    similar_cars_count = serializers.ReadOnlyField()
     review_average = serializers.ReadOnlyField()
 
     class Meta:
         model = Car
         fields = '__all__'
     
-    def get_maintenance_centers_count(self, obj):
-         return obj.maintenance_centers_count   
-    
-    def get_similar_cars_count(self, obj):
-          return obj.similar_cars_count
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         reordered_data = {}
@@ -102,7 +95,7 @@ class SimilarPostSerializer(serializers.ModelSerializer):
 class CarReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        exclude = ['id']
+        fields = '__all__'
 
 
 
@@ -111,4 +104,8 @@ class PriceStatisticsSerializer(serializers.Serializer):
     max_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     avg_price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
-
+class HomePageSerilizer(serializers.Serializer):
+       class Meta:
+           model =  Car
+           fields = ['brands','body_types','tags','fuel_types']
+        

@@ -5,32 +5,24 @@ from user.models import Profile
 from maintenance.models import MaintenanceCenter
 import pandas as pd
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 from django.db.models import Avg
-
+from .utils import *
 # Create your models here.
 
 
-data = pd.read_csv("Data.csv") 
-unique_makes = data["Make"].unique()
-unique_model = data["Model"].unique()
+unique_makes = cars_data["Make"].unique()
+unique_model = cars_data["Model"].unique()
 unique_model.sort()
 
 current_year = timezone.now().year
 
-def car_image_interior_path(instance, filename):
-    return f'interior/{instance.id}/{filename}'
-def car_image_exterior_path(instance, filename):
-    return f'exterior/{instance.id}/{filename}'
-
 class Car(models.Model):
-    
     BRAND_CHOICES = [(make, make) for make in unique_makes]
-    YEAR_CHOICES = [(year, year) for year in range(1900, current_year + 2)]
+
     TRANSMISSION_CHOICES = (
         ('manual', 'Manual'),
         ('automatic', 'Automatic'))
-    
+
     FUEL_CHOICES = (
         ('petrol','بنزين'),
         ('diesel','ديزل'),
@@ -47,16 +39,9 @@ class Car(models.Model):
     
     CUSTOM_CHOICES = (('yes','مجمرك'),
                       ('no','غير مجمرك'))
-    
-    BODY_CHOICES = (('bus','Bus'),
-                    ('convertible','Convertible'),
-                    ('coupe','Coupe'),
-                    ('hatchback','Hatchback'),
-                    ('sedan','Sedan'),
-                    ('suv','SUV'),
-                    ('pick-up','PickUp'),
-                    ('truck','Truck'))
-    
+
+
+
     id =  models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     owner = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE, related_name='owned_cars')
     title = models.CharField(max_length = 200, blank = True)
@@ -64,7 +49,7 @@ class Car(models.Model):
     brand = models.CharField(max_length=50, choices=BRAND_CHOICES)
     model = models.CharField('model', max_length=50)
     country = CountryField()
-    release_year = models.PositiveIntegerField(choices=YEAR_CHOICES)
+    release_year = models.PositiveIntegerField()
     engine_size = models.PositiveIntegerField(blank=True, null=True)
     fuel_type = models.CharField(max_length=20,choices=FUEL_CHOICES, blank=True, null=True)
     transmission_type = models.CharField(max_length=20, choices=TRANSMISSION_CHOICES, blank=True, null=True)
@@ -77,7 +62,7 @@ class Car(models.Model):
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, blank=True, null=True)
     custom = models.CharField(max_length=20, choices=CUSTOM_CHOICES, blank=True, null=True)
     body_type = models.CharField(max_length=20, choices = BODY_CHOICES, blank=True, null=True)
-    color = models.CharField(max_length=10, blank=True, null=True)
+    color = models.CharField(max_length=10, blank=True, null=True, choices=COLOR_CHOICES)
     interior = models.TextField(blank=True ,null=True )
     interior_image = models.ImageField(upload_to=car_image_interior_path, blank=True, null=True) 
     exterior = models.TextField(blank=True ,null=True)
