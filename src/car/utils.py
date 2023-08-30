@@ -1,9 +1,9 @@
 import pandas as pd
 
 def car_image_interior_path(instance, filename):
-    return f'interior/{instance.id}/{filename}'
+    return f'interior/{instance.car.id}/{filename}'
 def car_image_exterior_path(instance, filename):
-    return f'exterior/{instance.id}/{filename}'
+    return f'exterior/{instance.car.id}/{filename}'
 
 
 cars_data = pd.read_csv("Data.csv") 

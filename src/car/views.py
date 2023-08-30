@@ -19,7 +19,7 @@ def home_page(request):
         request.session['min_price'] = min_price
         request.session['max_price'] = max_price
         queryset = Car.objects.all()
-        filtered_queryset = CarFilterBackend().filter_queryset(request, queryset, None)  
+        filtered_queryset = CarFilter().filter_queryset(request, queryset, None)  
         serializer = CarSerializer(filtered_queryset, many=True)
         return Response({"redirect": "all_ads_page", "filtered_cars": serializer.data})
 
@@ -53,7 +53,6 @@ def get_cars(request):
 
 @api_view(['GET', 'POST'])
 def get_car_details(request, pk):
-    form = ReviewForm()
     try:
             car = Car.objects.get(id=pk)
             review = car.get_reviews
@@ -79,7 +78,7 @@ def get_car_details(request, pk):
         review_serializer = CarReviewSerializer(review, many = True)
         price_serializer = PriceHistorySerializer(price_history, many=True)
         price_stats_serializer = PriceStatisticsSerializer(price_stats)
-        other_cars_serializer = CarAdsSerializer(other_cars, many = True)
+        car_ads_serializer = CarAdsSerializer(other_cars, many = True)
         competitor_cars_serializer = CompetitorCarSerializer(competitor_cars, many=True)
         
         data = {
@@ -89,15 +88,15 @@ def get_car_details(request, pk):
             "review" :review_serializer.data,
             "price_stats": price_stats_serializer.data,
             "price_history": price_serializer.data,
-            #"similar_posts": similar_posts_serializer.data,
-            "other_cars": other_cars_serializer.data,
+            "cars_ads": car_ads_serializer.data,
             "competitor_cars": competitor_cars_serializer.data,
      }
         
     if request.method == 'POST':
+        user_profile = request.user.profile
         serializer = CarReviewSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user.profile, car=car)  
+            serializer.save(user=user_profile, post=car)  
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -108,7 +107,7 @@ def all_ads_page(request):
     form = CarFilterForm(request.data)
     if form.is_valid():
         queryset = Car.objects.all()  
-        filtered_queryset = CarFilterBackend().filter_queryset(request, queryset, None)  
+        filtered_queryset = CarFilter().filter_queryset(request, queryset, None)  
         serializer = CarSerializer(filtered_queryset, many=True)
         return Response(serializer.data)
     

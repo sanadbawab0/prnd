@@ -85,10 +85,10 @@ class PriceHistorySerializer(serializers.ModelSerializer):
 
 
 
-class SimilarPostSerializer(serializers.ModelSerializer):
+class AllAdsSerializer(serializers.ModelSerializer):
      class Meta:
          model = Car
-         fields = ['title']
+         fields = ['title','discription','image']
 
 
 
@@ -96,6 +96,7 @@ class CarReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+        read_only_fields = ['user']
 
 
 
@@ -109,3 +110,9 @@ class HomePageSerilizer(serializers.Serializer):
            model =  Car
            fields = ['brands','body_types','tags','fuel_types']
         
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageModel
+        fields = ['image_field']
+

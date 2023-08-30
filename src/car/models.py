@@ -3,7 +3,6 @@ from django_countries.fields import CountryField
 import uuid
 from user.models import Profile
 from maintenance.models import MaintenanceCenter
-import pandas as pd
 from django.utils import timezone
 from django.db.models import Avg
 from .utils import *
@@ -64,9 +63,7 @@ class Car(models.Model):
     body_type = models.CharField(max_length=20, choices = BODY_CHOICES, blank=True, null=True)
     color = models.CharField(max_length=10, blank=True, null=True, choices=COLOR_CHOICES)
     interior = models.TextField(blank=True ,null=True )
-    interior_image = models.ImageField(upload_to=car_image_interior_path, blank=True, null=True) 
     exterior = models.TextField(blank=True ,null=True)
-    exterior_image = models.ImageField(upload_to=car_image_exterior_path, blank=True, null=True)
     performance = models.CharField(max_length=50, blank=True, null=True)
     performance_description = models.TextField(blank=True ,null=True)
     tags = models.ManyToManyField('Tag', related_name='tags', default=None, blank=True)
@@ -162,7 +159,14 @@ class NegativeAspect(models.Model):
     def __str__(self):
         return self.name
 
+class ImageModel(models.Model):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='images', null = True)
+    interior_image = models.ImageField(upload_to=car_image_interior_path, null=True, blank=True)
+    exterior_image = models.ImageField(upload_to=car_image_exterior_path, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Image {self.id} for {self.car}"
 
 class Review(models.Model):
     RATE_CHOICES = [(rate, rate) for rate in range(1, 6)]

@@ -1,6 +1,6 @@
 from rest_framework.filters import BaseFilterBackend
 
-class CarFilterBackend(BaseFilterBackend):
+class CarFilter(BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         brand = request.data.get('brand')
         model = request.data.get('model')
