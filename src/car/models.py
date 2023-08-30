@@ -158,15 +158,23 @@ class NegativeAspect(models.Model):
 
     def __str__(self):
         return self.name
+    
 
-class ImageModel(models.Model):
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='images', null = True)
+class InteriorImage(models.Model):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='interior_images')
     interior_image = models.ImageField(upload_to=car_image_interior_path, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Interior Image {self.id} for {self.car}"
+
+class ExteriorImage(models.Model):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='exterior_images')
     exterior_image = models.ImageField(upload_to=car_image_exterior_path, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Image {self.id} for {self.car}"
+        return f"Exterior Image {self.id} for {self.car}"
 
 class Review(models.Model):
     RATE_CHOICES = [(rate, rate) for rate in range(1, 6)]

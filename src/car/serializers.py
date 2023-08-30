@@ -3,7 +3,9 @@ from rest_framework import serializers
 from .models import *
 from maintenance.models import MaintenanceCenter
 
+
 class CarSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Car
         fields = ['id','owner','brand','model','release_year']
@@ -51,6 +53,16 @@ class NegativeAspectSerializer(serializers.ModelSerializer):
         model = NegativeAspect
         fields = '__all__'
 
+class InteriorImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteriorImage
+        fields = ['interior_image']
+
+class ExteriorImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExteriorImage
+        fields = ['exterior_image']
+
 class CarDetailsSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     maintenance_centers = MaintenanceCenterSerializer(many=True, read_only=True)
@@ -58,7 +70,9 @@ class CarDetailsSerializer(serializers.ModelSerializer):
     maintenance_centers_count = serializers.ReadOnlyField()
     similar_cars_count = serializers.ReadOnlyField()
     review_average = serializers.ReadOnlyField()
-
+    interior_images = InteriorImageSerializer(many=True)
+    exterior_images = ExteriorImageSerializer(many=True)
+    
     class Meta:
         model = Car
         fields = '__all__'
@@ -76,6 +90,8 @@ class CarDetailsSerializer(serializers.ModelSerializer):
         reordered_data['tech_and_safety_features'] = data['tech_and_safety_features']
 
         return reordered_data
+    
+
 
 
 class PriceHistorySerializer(serializers.ModelSerializer):
@@ -99,7 +115,6 @@ class CarReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 
-
 class PriceStatisticsSerializer(serializers.Serializer):
     min_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     max_price = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -111,8 +126,5 @@ class HomePageSerilizer(serializers.Serializer):
            fields = ['brands','body_types','tags','fuel_types']
         
 
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ImageModel
-        fields = ['image_field']
+
 

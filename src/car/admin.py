@@ -8,4 +8,6 @@ admin.site.register(models.PositiveAspect)
 admin.site.register(models.NegativeAspect)
 admin.site.register(models.PriceHistory)
 admin.site.register(models.Review)
-admin.site.register(models.ImageModel)
+admin.site.register(models.InteriorImage)
+admin.site.register(models.ExteriorImage)
+
