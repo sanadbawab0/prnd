@@ -4,11 +4,6 @@ from .models import *
 from maintenance.models import MaintenanceCenter
 
 
-class CarSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Car
-        fields = ['id','owner','brand','model','release_year']
 
 class CompetitorCarSerializer(serializers.ModelSerializer):
     review_average = serializers.ReadOnlyField()
@@ -63,6 +58,21 @@ class ExteriorImageSerializer(serializers.ModelSerializer):
         model = ExteriorImage
         fields = ['exterior_image']
 
+class CarSerializer(serializers.ModelSerializer):
+    first_exterior_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Car
+        fields = ['id','owner','brand','model','release_year','first_exterior_image','post_time']
+
+    def get_first_exterior_image(self, obj):
+        first_image = obj.exterior_images.first()  # Assuming exterior_images is a related manager
+        if first_image:
+            return ExteriorImageSerializer(first_image).data
+        return None
+    
+
+    
 class CarDetailsSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     maintenance_centers = MaintenanceCenterSerializer(many=True, read_only=True)
@@ -93,7 +103,6 @@ class CarDetailsSerializer(serializers.ModelSerializer):
     
 
 
-
 class PriceHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PriceHistory
@@ -115,16 +124,28 @@ class CarReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 
-class PriceStatisticsSerializer(serializers.Serializer):
-    min_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    max_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    avg_price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
 class HomePageSerilizer(serializers.Serializer):
        class Meta:
            model =  Car
            fields = ['brands','body_types','tags','fuel_types']
         
+class PriceStatisticsSerializer(serializers.Serializer):
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    max_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    avg_price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
-
+class CarFilterSerializer(serializers.ModelSerializer):
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    max_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    brand = serializers.CharField(max_length=100, required=False)
+    model = serializers.CharField(max_length=100, required=False)
+    release_year = serializers.IntegerField(required=False)
+    class Meta :
+       model = Car
+       fields = ['brand', 'model', 'body_type', 
+                  'release_year','transmission_type', 'fuel_type', 
+                  'color','condition', 'custom',
+                  'max_price', 'min_price']
+       
 

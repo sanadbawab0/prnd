@@ -1,18 +1,18 @@
-from rest_framework.filters import BaseFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
 
-class CarFilter(BaseFilterBackend):
+class CarFilter(DjangoFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        brand = request.data.get('brand')
-        model = request.data.get('model')
-        body_type = request.data.get('body_type')
-        release_year = request.data.get('release_year')
-        transmission_type = request.data.get('transmission_type')
-        fuel_type = request.data.get('fuel_type')
-        color = request.data.get('color')
-        condition = request.data.get('custom')
-        custom = request.data.get('condition')
-        min_price = request.data.get('min_price')
-        max_price = request.data.get('max_price')
+        brand = request.GET.get('brand')
+        model = request.GET.get('model')
+        body_type = request.GET.get('body_type')
+        release_year = request.GET.get('release_year')
+        transmission_type = request.GET.get('transmission_type')
+        fuel_type = request.GET.get('fuel_type')
+        color = request.GET.get('color')
+        condition = request.GET.get('custom')
+        custom = request.GET.get('condition')
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
         
         if brand:
             queryset = queryset.filter(brand=brand)

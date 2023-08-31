@@ -5,6 +5,7 @@ from user.models import Profile
 from maintenance.models import MaintenanceCenter
 from django.utils import timezone
 from django.db.models import Avg
+import math
 from .utils import *
 # Create your models here.
 
@@ -71,7 +72,6 @@ class Car(models.Model):
     maintenance_centers = models.ManyToManyField(MaintenanceCenter, default=None, blank = True, related_name='maintenance_centers')
     updated = models.DateTimeField(auto_now=True)
     post_time = models.DateTimeField(default=timezone.now, editable=False)
-    liked_by = models.ManyToManyField(Profile, default=None, blank=True)
 
     class Meta:
         constraints = [
@@ -96,10 +96,6 @@ class Car(models.Model):
     
 
     @property
-    def num_likes(self):
-        return self.liked_by.all().count()
-    
-    @property
     def similar_cars_count(self):
         return Car.objects.filter(brand__iexact=self.brand, model__iexact=self.model).exclude(id=self.id).count()
     
@@ -107,7 +103,7 @@ class Car(models.Model):
     def review_average(self):
         average_rating = self.reviews.aggregate(Avg('rating'))['rating__avg']
         if average_rating is not None:
-            return average_rating
+            return math.ceil(average_rating)
         return 0
     
     @property
@@ -183,14 +179,11 @@ class Review(models.Model):
     post = models.ForeignKey(Car, null=True, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveIntegerField(choices = RATE_CHOICES)
     content = models.TextField(blank=True)
-    like = models.BooleanField(default=False)
     review_date = models.DateTimeField(default=timezone.now)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
     class Meta:
         ordering=['-review_date']
-    
-
     
     def __str__(self):
         return f"{self.user.username} reviewed {self.post.title}"

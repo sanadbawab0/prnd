@@ -15,7 +15,6 @@ class CarFilterForm(forms.ModelForm):
             'transmission_type', 'fuel_type', 'color',
             'condition', 'custom',
         ]
-class ReviewForm(forms.ModelForm):
-    class Meta:
-        model = Review
-        fields = ['rating', 'content']
+
+
+

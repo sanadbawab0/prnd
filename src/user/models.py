@@ -4,7 +4,6 @@ import uuid
 from phonenumber_field.modelfields import PhoneNumberField
 from PIL import Image
 from django.core.exceptions import ValidationError
-
 # Create your models here.
 
 class Profile(models.Model):
@@ -19,6 +18,7 @@ class Profile(models.Model):
     created = models.DateTimeField(auto_now_add = True)
     num_posts = models.PositiveIntegerField(default=0, editable=False)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    favorite_cars = models.ManyToManyField('car.Car', related_name='favorited_by')
 
     def __str__(self):
        return str(self.username)
