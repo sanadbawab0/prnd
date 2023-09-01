@@ -16,12 +16,11 @@ from .filters import *
 
 
 
-
 @api_view(['GET'])
 def get_cars(request):
     if request.method == 'GET':
         car = Car.objects.all()
-        car_serializer = CarSerializer(car, many = True)
+        car_serializer = ViewCarSerializer(car, many = True)
     return Response(car_serializer.data)
 
 @api_view(['GET', 'POST'])
@@ -47,8 +46,8 @@ def home_page(request):
         brands = cars_data['Make'].unique()
         body_types = [choice[1] for choice in BODY_CHOICES]
         car_tags = Tag.objects.exclude(tags__isnull=True).values_list('name', flat=True).distinct()
-        car_fuel_types = Car.objects.exclude(fuel_type__isnull=True).values_list('fuel_type', flat=True).distinct()
-        
+        car_fuel_types = [choice[1] for choice in FUEL_CHOICES]
+
         news_serializer = NewsAndArticlesSerilizer(news, many=True)
         
         data = {
@@ -60,7 +59,6 @@ def home_page(request):
         }
 
         return Response(data)
-
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
@@ -118,16 +116,45 @@ def get_car_details(request, pk):
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def all_ads_page(request):
+    brands = cars_data['Make'].unique()
+    body_types = [choice[1] for choice in BODY_CHOICES]
+    transmission_type = [choice[1] for choice in TRANSMISSION_CHOICES]
+    car_fuel_types = [choice[1] for choice in FUEL_CHOICES]
+    color = [choice[1] for choice in COLOR_CHOICES]
+    condition = [choice[1] for choice in CONDITION_CHOICES]
+    custom = [choice[1] for choice in CUSTOM_CHOICES]
+
+    selected_brand = request.GET.get('brand')
+
+    if selected_brand:
+        brands = selected_brand
+        models = Car.objects.filter(brand=selected_brand).values_list('model', flat=True).distinct()
+    else:
+        models = []
+
     queryset = Car.objects.all()
-    filter_serializer = CarFilterSerializer(data = request.GET)
+    filter_set = CarFilter(request.GET, queryset=queryset)
     
-    if filter_serializer.is_valid():
-        queryset = CarFilter().filter_queryset(request, queryset, None)
+    if filter_set.is_valid():
+        queryset = filter_set.qs
         if not queryset.exists():
-            return Response({'message': 'No cars found'}, status=400)
+            return Response({'message': 'No cars found'}, status=200)
     else:
         return Response({'error': 'Invalid filter parameters'}, status=400)
         
+    car_Serializer = ViewCarSerializer(queryset, many=True)
+        
+    data = {
+        'brands': brands,
+        'models': models,
+        'body_types': body_types,
+        'transmission_types': transmission_type,
+        'fuel_types': car_fuel_types,
+        'colors': color,
+        'conditions': condition,
+        'customs': custom,
+        'cars': car_Serializer.data,
+        }
 
     if request.method == 'POST' and request.user.is_authenticated:
         car_id = request.data.get('id')
@@ -145,29 +172,98 @@ def all_ads_page(request):
             return Response({'message': 'Car added to favorites'}, status=201)
 
 
-    car_Serializer = CarSerializer(queryset, many=True)
-    return Response(car_Serializer.data)
+    return Response(data)
 
-#TODO Advanced Search
 @api_view(['GET'])
 def advanced_search(request):
-    queryset = Car.objects.all()
-    filter_serializer = CarFilterSerializer(data = request.GET)
-    
-    if filter_serializer.is_valid():
-        queryset = CarFilter().filter_queryset(request, queryset, None)
-        if not queryset.exists():
-            return Response({'message': 'No cars found'}, status=400)
-    else:
-        return Response({'error': 'Invalid filter parameters'}, status=400)
-    
-    car_Serializer = CarSerializer(queryset, many=True)
-    return Response(car_Serializer.data)
+     if request.method=='GET':
+        
+        brands = cars_data['Make'].unique()
+        models = cars_data['Model'].unique()
+        body_types = [choice[1] for choice in BODY_CHOICES]
+        transmission_type = [choice[1] for choice in TRANSMISSION_CHOICES]
+        car_fuel_types = [choice[1] for choice in FUEL_CHOICES]
+        color = [choice[1] for choice in COLOR_CHOICES]
+        condition = [choice[1] for choice in CONDITION_CHOICES]
+        custom = [choice[1] for choice in CUSTOM_CHOICES]
+
+        selected_brand = request.GET.get('brand')
+
+        if selected_brand:
+            brands = selected_brand
+            models = Car.objects.filter(brand=selected_brand).values_list('model', flat=True).distinct()
+        else:
+            models = []
+
+        data = {
+        'brands': brands,
+        'models': models,
+        'body_types': body_types,
+        'transmission_types': transmission_type,
+        'fuel_types': car_fuel_types,
+        'colors': color,
+        'conditions': condition,
+        'customs': custom,
+        }
+        return Response(data)
 
 
-#TODO Add Car 
-#TODO Edit Car
-#TODO Delete Car 
+@api_view(['POST','GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def add_car(request):
+    if request.method == 'GET':
+        brands = cars_data['Make'].unique()
+        body_types = [choice[1] for choice in BODY_CHOICES]
+        transmission_type = [choice[1] for choice in TRANSMISSION_CHOICES]
+        car_fuel_types = [choice[1] for choice in FUEL_CHOICES]
+        color = [choice[1] for choice in COLOR_CHOICES]
+        condition = [choice[1] for choice in CONDITION_CHOICES]
+        custom = [choice[1] for choice in CUSTOM_CHOICES]
+        data = {
+        'brands': brands,
+
+        'body_types': body_types,
+        'transmission_types': transmission_type,
+        'fuel_types': car_fuel_types,
+        'colors': color,
+        'conditions': condition,
+        'customs': custom,
+        }
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        serializer = CarSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.validated_data['owner'] = request.user.profile
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response(data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def edit_car(request, pk):
+    car = Car.objects.get(id=pk)
+
+    if request.method == 'PUT' and request.user.is_authenticated:
+        serializer = CarEditSerializer(instance=car, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def delete_car(request, pk):
+    car = Car.objects.get(id=pk)
+
+    if request.method == 'DELETE' and request.user.is_authenticated:
+        car.delete()
+        return Response({'message': 'Car deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
 
     
 

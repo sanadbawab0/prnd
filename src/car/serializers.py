@@ -58,19 +58,24 @@ class ExteriorImageSerializer(serializers.ModelSerializer):
         model = ExteriorImage
         fields = ['exterior_image']
 
-class CarSerializer(serializers.ModelSerializer):
+class ViewCarSerializer(serializers.ModelSerializer):
     first_exterior_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Car
         fields = ['id','owner','brand','model','release_year','first_exterior_image','post_time']
-
+   
     def get_first_exterior_image(self, obj):
         first_image = obj.exterior_images.first()  # Assuming exterior_images is a related manager
         if first_image:
             return ExteriorImageSerializer(first_image).data
         return None
-    
+
+class CarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Car
+        fields = '__all__'
+
 
     
 class CarDetailsSerializer(serializers.ModelSerializer):
@@ -135,17 +140,19 @@ class PriceStatisticsSerializer(serializers.Serializer):
     max_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     avg_price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
-class CarFilterSerializer(serializers.ModelSerializer):
-    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
-    max_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
-    brand = serializers.CharField(max_length=100, required=False)
-    model = serializers.CharField(max_length=100, required=False)
+
+class CarEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Car
+        fields = '__all__'  
+
+    brand = serializers.CharField(required=False)
+    country = serializers.CharField(required=False)
     release_year = serializers.IntegerField(required=False)
-    class Meta :
-       model = Car
-       fields = ['brand', 'model', 'body_type', 
-                  'release_year','transmission_type', 'fuel_type', 
-                  'color','condition', 'custom',
-                  'max_price', 'min_price']
-       
+
+    def validate_release_year(self, value):
+        if value < 1900:  
+            raise serializers.ValidationError("Release year must be later than 1900.")
+        return value
+
 

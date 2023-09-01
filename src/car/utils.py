@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def car_image_interior_path(instance, filename):
     return f'interior/{instance.car.id}/{filename}'
 def car_image_exterior_path(instance, filename):
@@ -23,6 +24,28 @@ BODY_CHOICES = (('bus','Bus'),
                     ('suv','SUV'),
                     ('pick-up','PickUp'),
                     ('truck','Truck'))
+
+
+TRANSMISSION_CHOICES = (
+        ('manual', 'Manual'),
+        ('automatic', 'Automatic'))
+
+FUEL_CHOICES = (
+        ('petrol','بنزين'),
+        ('diesel','ديزل'),
+        ('electric','كهرباء'),
+        ('hybrid','هايبرد'),
+        ('mild-hybrid','مايلد هايبرد'),
+        ('plugin-hybrid','هايبرد - plugin'),
+    )
+CONDITION_CHOICES = (('excelent','ممتازة'),
+                         ('good','جيد'),
+                         ('small-accident','حادث بسيط'),
+                         ('accident','تعرضت لحادث'),
+                         ('other','أخرى'))
+    
+CUSTOM_CHOICES = (('yes','مجمرك'),
+                      ('no','غير مجمرك'))
 
 
 

@@ -19,29 +19,6 @@ current_year = timezone.now().year
 class Car(models.Model):
     BRAND_CHOICES = [(make, make) for make in unique_makes]
 
-    TRANSMISSION_CHOICES = (
-        ('manual', 'Manual'),
-        ('automatic', 'Automatic'))
-
-    FUEL_CHOICES = (
-        ('petrol','بنزين'),
-        ('diesel','ديزل'),
-        ('electric','كهرباء'),
-        ('hybrid','هايبرد'),
-        ('mild-hybrid','مايلد هايبرد'),
-        ('plugin-hybrid','هايبرد - plugin'),
-    )
-    CONDITION_CHOICES = (('excelent','ممتازة'),
-                         ('good','جيد'),
-                         ('small-accident','حادث بسيط'),
-                         ('accident','تعرضت لحادث'),
-                         ('other','أخرى'))
-    
-    CUSTOM_CHOICES = (('yes','مجمرك'),
-                      ('no','غير مجمرك'))
-
-
-
     id =  models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     owner = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE, related_name='owned_cars')
     title = models.CharField(max_length = 200, blank = True)
