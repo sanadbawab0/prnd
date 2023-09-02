@@ -22,5 +22,6 @@ urlpatterns = [
     path('', include('user.urls')),
     path('', include('car.urls')),
     path('', include('maintenance.urls')),
+    path('', include('news_and_articles.urls')),
 
 ]

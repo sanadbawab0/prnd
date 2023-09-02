@@ -249,7 +249,11 @@ def add_car(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def edit_car(request, pk):
-    car = Car.objects.get(id=pk)
+    
+    try:
+        car = Car.objects.get(id=pk)
+    except Car.DoesNotExist:
+        return Response({'message': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT' and request.user.is_authenticated:
         serializer = CarEditSerializer(instance=car, data=request.data)

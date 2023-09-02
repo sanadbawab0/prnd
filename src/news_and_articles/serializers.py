@@ -5,4 +5,6 @@ from .models import *
 class NewsAndArticlesSerilizer(serializers.ModelSerializer):
     class Meta:
         model = NewsAndArticles
-        fields = ['title','content','image']
+        fields = '__all__'
+
+

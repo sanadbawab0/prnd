@@ -10,7 +10,6 @@ class NewsAndArticles(models.Model):
     author = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL, related_name='author')
     image  = models.ImageField(upload_to='NewsAndArticles', blank=True , null= True )
     content = models.TextField(blank = True)
-    liked_by = models.ManyToManyField(Profile, default=None, blank=True)
     updated = models.DateTimeField(auto_now=True)
     post_time = models.DateTimeField(default=timezone.now)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)

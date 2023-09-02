@@ -19,6 +19,7 @@ class Profile(models.Model):
     num_posts = models.PositiveIntegerField(default=0, editable=False)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     favorite_cars = models.ManyToManyField('car.Car', related_name='favorited_by')
+    favorite_posts = models.ManyToManyField('news_and_articles.NewsAndArticles', related_name='favorited_by')
 
     def __str__(self):
        return str(self.username)
