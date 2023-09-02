@@ -260,11 +260,18 @@ def edit_car(request, pk):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['DELETE'])
+@api_view(['DELETE', 'GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def delete_car(request, pk):
-    car = Car.objects.get(id=pk)
+    try:
+        car = Car.objects.get(id=pk)
+    except Car.DoesNotExist:
+        return Response({'message': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    if request.method == 'GET':
+        car_serializer = ViewCarSerializer(car)  
+        return Response(car_serializer.data)
+    
     if request.method == 'DELETE' and request.user.is_authenticated:
         car.delete()
         return Response({'message': 'Car deleted successfully'}, status=status.HTTP_204_NO_CONTENT)

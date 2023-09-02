@@ -1,7 +1,6 @@
 from rest_framework import serializers 
-
 from .models import *
-from maintenance.models import MaintenanceCenter
+from maintenance.serializers import MaintenanceCenterSerializer
 
 
 
@@ -33,10 +32,7 @@ class TechAndSafetyFeaturesSerializer(serializers.ModelSerializer):
         model = TechAndSafetyFeatures
         exclude = ['id']
 
-class MaintenanceCenterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MaintenanceCenter
-        fields = '__all__'
+
 
 class PositiveAspectSerializer(serializers.ModelSerializer):
     class Meta:

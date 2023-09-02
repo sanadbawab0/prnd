@@ -2,11 +2,12 @@ from django.db import models
 import pandas as pd
 import uuid
 # Create your models here.
+data = pd.read_csv("Data.csv")
+unique_makes = data["Make"].unique()
+unique_makes.sort()
 
 class MaintenanceCenter(models.Model):
-    data = pd.read_csv("Data.csv")
-    unique_makes = data["Make"].unique()
-    unique_makes.sort()
+
     BRAND_CHOICES = [(make, make) for make in unique_makes]
 
     name = models.CharField(max_length=100)
