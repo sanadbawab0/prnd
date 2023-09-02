@@ -142,8 +142,12 @@ def all_ads_page(request):
     else:
         return Response({'error': 'Invalid filter parameters'}, status=400)
         
-    car_Serializer = ViewCarSerializer(queryset, many=True)
-        
+    
+    page = request.GET.get('page')
+    custom_range, cars = paginatePosts(request, queryset, 10, page)
+    car_Serializer = ViewCarSerializer(cars, many=True)
+
+    
     data = {
         'brands': brands,
         'models': models,
@@ -154,6 +158,7 @@ def all_ads_page(request):
         'conditions': condition,
         'customs': custom,
         'cars': car_Serializer.data,
+        'custom_range':list(custom_range),
         }
 
     if request.method == 'POST' and request.user.is_authenticated:
