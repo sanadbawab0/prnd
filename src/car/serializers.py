@@ -62,7 +62,7 @@ class ViewCarSerializer(serializers.ModelSerializer):
         fields = ['id','owner','brand','model','release_year','first_exterior_image','post_time']
    
     def get_first_exterior_image(self, obj):
-        first_image = obj.exterior_images.first()  # Assuming exterior_images is a related manager
+        first_image = obj.exterior_images.first()  
         if first_image:
             return ExteriorImageSerializer(first_image).data
         return None

@@ -3,6 +3,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .serializers import *
+from car.models import Car
+from car.serializers import ViewCarSerializer
 
 # Create your views here.
 
@@ -11,8 +13,14 @@ from .serializers import *
 def news_page(request):
     if request.method == "GET":
         article = NewsAndArticles.objects.all()
-        serializer = NewsAndArticlesSerilizer(article, many=True)
-        return Response(serializer.data)
+        car = Car.objects.all()
+        article_serializer = NewsAndArticlesSerilizer(article, many=True)
+        car_serializer = ViewCarSerializer(car, many = True)
+        data = {
+            "news and articles": article_serializer.data ,  
+            "cars": car_serializer.data   
+        }
+        return Response(data)
     
     elif request.method == 'POST' and request.user.is_authenticated:
         action = request.data.get('action')  
@@ -44,6 +52,58 @@ def news_page(request):
     return Response({'message': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-#TODO GET POST 
-#TODO EDIT POST
-#TODO DELETE POST
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def article(request,pk):
+    article = NewsAndArticles.objects.get(id=pk) 
+    review = article.get_reviews
+    if request.method == "GET":
+        news_and_article_serializer = NewsAndArticlesSerilizer(article)
+        review_serializer = NewsAndArticlesReviewSerilizer(review,many=True)
+        data = {
+            'news_and_article': news_and_article_serializer.data,
+            'review': review_serializer.data,
+        }
+    if request.method == 'POST' and request.user.is_authenticated:
+        user_profile = request.user.profile
+        serializer = NewsAndArticlesReviewSerilizer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user_profile, news_article=article)  
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(data)
+    
+@api_view(['PUT'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def edit_article(request,pk):
+    try:
+        article = NewsAndArticles.objects.get(id=pk)
+    except NewsAndArticles.DoesNotExist:
+        return Response({'message': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT' and request.user.is_authenticated:
+        serializer = NewsAndArticlesSerilizer(instance=article, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE', 'GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def delete_article(request, pk):
+    try:
+        article = NewsAndArticles.objects.get(id=pk)
+    except NewsAndArticles.DoesNotExist:
+        return Response({'message': 'article not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        car_serializer = NewsAndArticlesSerilizer(article)  
+        return Response(car_serializer.data)
+    
+    if request.method == 'DELETE' and request.user.is_authenticated:
+        article.delete()
+        return Response({'message': 'article deleted successfully'}, status=status.HTTP_204_NO_CONTENT)

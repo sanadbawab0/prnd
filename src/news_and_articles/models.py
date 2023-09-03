@@ -19,6 +19,9 @@ class NewsAndArticles(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+    @property
+    def get_reviews(self):
+        return NewsAndArticlesReview.objects.filter(news_article=self)
     
     def save(self, *args, **kwargs):
         if not self.title:
@@ -31,7 +34,7 @@ class NewsAndArticlesReview(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='reviewd_by')
     news_article = models.ForeignKey(NewsAndArticles, null=True, on_delete=models.CASCADE, related_name='article_reviews')
     content = models.TextField(blank=True, null=True)
-    like = models.BooleanField(default=False)
+    #like = models.BooleanField(default=False)
     review_date = models.DateTimeField(default=timezone.now)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 

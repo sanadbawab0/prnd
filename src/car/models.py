@@ -10,15 +10,11 @@ from .utils import *
 # Create your models here.
 
 
-unique_makes = cars_data["Make"].unique()
-unique_model = cars_data["Model"].unique()
-unique_model.sort()
+
 
 current_year = timezone.now().year
 
 class Car(models.Model):
-    BRAND_CHOICES = [(make, make) for make in unique_makes]
-
     id =  models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     owner = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE, related_name='owned_cars')
     title = models.CharField(max_length = 200, blank = True)
@@ -59,9 +55,11 @@ class Car(models.Model):
         ]
     
     def save(self, *args, **kwargs):
+        if self.pk is not None:
+            old_instance = Car.objects.get(pk=self.pk)
+            if old_instance.price != self.price:
+                PriceHistory.objects.create(car=self, price=self.price)
         super().save(*args, **kwargs)
-
-        PriceHistory.objects.create(car=self,price=self.price)
 
     @property
     def get_reviews(self):
