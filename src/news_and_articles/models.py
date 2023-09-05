@@ -7,7 +7,7 @@ from django.utils import timezone
 # Create your models here.
 class NewsAndArticles(models.Model):
     title = models.CharField(max_length = 200, blank = True)
-    author = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL, related_name='author')
+    author = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.CASCADE, related_name='author')
     image  = models.ImageField(upload_to='NewsAndArticles', blank=True , null= True )
     content = models.TextField(blank = True)
     updated = models.DateTimeField(auto_now=True)

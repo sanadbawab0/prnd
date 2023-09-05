@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.db.models import Avg
 import math
 from .utils import *
+
 # Create your models here.
 
 
