@@ -8,15 +8,18 @@ from rest_framework.response import Response
 from .serializers import *
 from news_and_articles.serializers import NewsAndArticlesSerilizer
 from django.db.models import Min, Max, Avg
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .utils import *
 from .forms import *
 from .filters import *
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_cars(request):
     if request.method == 'GET':
         car = Car.objects.all()
@@ -61,7 +64,7 @@ def home_page(request):
         return Response(data)
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([IsAuthenticated])
 def get_car_details(request, pk):
     try:
             car = Car.objects.get(id=pk)
@@ -103,18 +106,20 @@ def get_car_details(request, pk):
             "review" :review_serializer.data,
      }
         
-    if request.method == 'POST' and request.user.is_authenticated:
+    if request.method == 'POST' and request.user.is_authenticated :
         user_profile = request.user.profile
         serializer = CarReviewSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=user_profile, post=car)  
+            serializer.validated_data['user'] = user_profile
+
+            serializer.save(post=car)  
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(data)
 
 @api_view(['GET','POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([IsAuthenticated])
 def all_ads_page(request):
     brands = cars_data['Make'].unique()
     body_types = [choice[1] for choice in BODY_CHOICES]

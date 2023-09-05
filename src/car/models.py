@@ -57,8 +57,8 @@ class Car(models.Model):
     
     def save(self, *args, **kwargs):
         if self.pk is not None:
-            old_instance = Car.objects.get(pk=self.pk)
-            if old_instance.price != self.price:
+            # old_instance = Car.objects.filter(pk=self.pk).first()
+            # if old_instance and old_instance.price != self.price:
                 PriceHistory.objects.create(car=self, price=self.price)
         super().save(*args, **kwargs)
 
@@ -161,8 +161,8 @@ class Review(models.Model):
     class Meta:
         ordering=['-review_date']
     
-    def __str__(self):
-        return f"{self.user.username} reviewed {self.post.title}"
+    # def __str__(self):
+    #     return f"{self.user.username} reviewed {self.post.title}"
 
 
 
