@@ -31,13 +31,18 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['profile_image']  
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
 class EditProfileSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(required=False)
+    profile = ProfileImageSerializer(required=False)
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)

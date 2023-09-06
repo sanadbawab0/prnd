@@ -164,8 +164,8 @@ class Review(models.Model):
     class Meta:
         ordering=['-review_date']
     
-    # def __str__(self):
-    #     return f"{self.user.username} reviewed {self.post.title}"
+    def __str__(self):
+         return f"{self.user} reviewed {self.post.title}"
 
 
 

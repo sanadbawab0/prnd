@@ -5,6 +5,10 @@ from .serializers import *
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from car.serializers import ViewCarSerializer
+from news_and_articles.serializers import NewsAndArticlesSerilizer
+from car.models import Car  
+from news_and_articles.models import NewsAndArticles
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -36,10 +40,33 @@ def Login(request):
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def UserView(request):
+def UserProfile(request):
     user = request.user
-    serializer = CustomUserSerializer(user, many=False)
-    return Response(serializer.data)
+    user_profile = request.user.profile
+    profile = Profile.objects.get(user=user)
+
+    user_data = {
+            "profile_image": user_profile.profile_image.url,  
+            "num_followers": user_profile.followers.count(),
+            "num_posts": user_profile.owned_cars.count() + user_profile.author.count(),        
+            }
+    
+    user_serializer = CustomUserSerializer(user, many=False)
+    
+    user_cars = Car.objects.filter(owner=profile)
+    user_posts = NewsAndArticles.objects.filter(author=profile)
+    
+    car_serializer = ViewCarSerializer(user_cars, many=True)
+    article_serializer = NewsAndArticlesSerilizer(user_posts, many=True)
+    
+    data  = {
+
+        'user':[user_serializer.data,user_data],
+        'cars' : car_serializer.data,
+        'articles': article_serializer.data
+    }
+    
+    return Response(data)
 
 
 @api_view(['POST'])
@@ -65,3 +92,51 @@ def EditProfile(request):
         if serializer.is_valid():
             serializer.save()
     return Response(serializer.data)
+
+@api_view(['GET'])
+def get_profiles(request):
+    profiles = Profile.objects.all()
+    serializer = ProfileSerializer(profiles, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def ViewOtherProfile(request, profile_id):
+    try:
+        user = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return Response({'message': 'Profile not found'}, status=404)
+
+    if request.method == 'GET':
+
+        user_data = {
+            "username": user.user.username, 
+            "profile_image": user.profile_image.url,  
+            "num_followers": user.followers.count(),
+            "num_posts": user.owned_cars.count() + user.author.count(),        
+            }
+        
+        ads = user.author.all()  
+        car = user.owned_cars.all()
+            
+        article_serializer = NewsAndArticlesSerilizer(ads, many=True)
+        car_serializer = ViewCarSerializer(car, many=True)
+
+        data = {
+            "user":user_data,
+            "article": article_serializer.data,
+            "car": car_serializer.data
+        }
+        
+        return Response(data, status=200)
+    
+
+    if user == request.user.profile:
+        return Response({'error': 'You cannot follow/unfollow yourself'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if user.followers.filter(id=request.user.profile.id).exists():
+        user.followers.remove(request.user.profile)
+        return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_200_OK)
+    else:
+        user.followers.add(request.user.profile)
+        return Response({'message': 'Followed successfully'}, status=status.HTTP_200_OK)

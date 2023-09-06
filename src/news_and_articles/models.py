@@ -42,7 +42,7 @@ class NewsAndArticlesReview(models.Model):
         ordering=['-review_date']
 
     def __str__(self):
-        return f"{self.user.username} reviewed {self.news_article.author}"
+        return f"{self.user} reviewed {self.news_article.author}"
 
 
 
