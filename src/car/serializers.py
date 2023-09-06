@@ -145,7 +145,7 @@ class CarEditSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(required=False)
     country = serializers.CharField(required=False)
     release_year = serializers.IntegerField(required=False)
-
+    model = serializers.CharField(required=False)
     def validate_release_year(self, value):
         if value < 1900:  
             raise serializers.ValidationError("Release year must be later than 1900.")

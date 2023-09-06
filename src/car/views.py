@@ -12,11 +12,8 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from .utils import *
 from .forms import *
 from .filters import *
-from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -239,7 +236,6 @@ def add_car(request):
         'conditions': condition,
         'customs': custom,
         }
-
     if request.method == 'POST' and request.user.is_authenticated:
         serializer = CarSerializer(data=request.data)
 

@@ -42,7 +42,7 @@ def news_page(request):
         
         elif action == 'create_post':
             serializer = NewsAndArticlesSerilizer(data=request.data)
-            
+             
             if serializer.is_valid():
                 serializer.validated_data['author'] = request.user.profile
                 serializer.save()

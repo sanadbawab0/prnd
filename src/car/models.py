@@ -17,7 +17,7 @@ current_year = timezone.now().year
 
 class Car(models.Model):
     id =  models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-    owner = models.ForeignKey(Profile, null=True, on_delete=models.CASCADE, related_name='owned_cars')
+    owner = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.CASCADE, related_name='owned_cars')
     title = models.CharField(max_length = 200, blank = True)
     description = models.TextField(blank = True)
     brand = models.CharField(max_length=50, choices=BRAND_CHOICES)
@@ -56,11 +56,14 @@ class Car(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        if self.pk is not None:
-            # old_instance = Car.objects.filter(pk=self.pk).first()
-            # if old_instance and old_instance.price != self.price:
+        if self._state.adding:
+            super().save(*args, **kwargs)
+            PriceHistory.objects.create(car=self, price=self.price)
+        else:
+            old_instance = Car.objects.filter(pk=self.pk).first()
+            if old_instance and old_instance.price != self.price:
                 PriceHistory.objects.create(car=self, price=self.price)
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     @property
     def get_reviews(self):
