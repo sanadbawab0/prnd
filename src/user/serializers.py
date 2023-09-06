@@ -30,16 +30,20 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-
 class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['profile_image']  
 
+class Favoriteserializer(serializers.ModelSerializer):
+    class Meta :
+        model = Profile
+        fields = ['favorite_cars','favorite_posts']
+
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = '__all__'
+        exclude = ['favorite_cars', 'favorite_posts','followers']
 
 class EditProfileSerializer(serializers.ModelSerializer):
     profile = ProfileImageSerializer(required=False)

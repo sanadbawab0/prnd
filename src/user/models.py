@@ -24,7 +24,6 @@ class Profile(models.Model):
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     profile_image = models.ImageField(null =True, blank=True, upload_to='profiles', default ="profiles/user-default.png")
     created = models.DateTimeField(auto_now_add = True)
-    num_posts = models.PositiveIntegerField(default=0, editable=False)
     favorite_cars = models.ManyToManyField('car.Car', related_name='favorited_by')
     favorite_posts = models.ManyToManyField('news_and_articles.NewsAndArticles', related_name='favorited_by')
     followers = models.ManyToManyField('self', symmetrical=False, blank=True)
@@ -41,24 +40,3 @@ class Profile(models.Model):
              img.thumbnail((300,300))
              img.save(self.profile_image.path)
             
-    def calculate_num_posts(self):
-         self.num_posts = self.posts.count()
-         self.save()
-
-    # def get_followers_count(self):
-    #      return UserConnection.objects.filter(following=self.user).count()
-
-    # def get_following_count(self):
-    #      return UserConnection.objects.filter(follower=self.user).count()
-    
-# class UserConnection(models.Model):
-#     follower = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='followers')
-#     following = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='following')
-#     created = models.DateTimeField(auto_now_add=True)
-
-#     def clean(self):
-#         if self.follower == self.following:
-#             raise ValidationError("A user cannot follow themselves.")
-    
-#     def __str__(self):
-#        return f'{self.follower} followed {self.following}'

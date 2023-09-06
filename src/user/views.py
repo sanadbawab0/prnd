@@ -58,12 +58,13 @@ def UserProfile(request):
     
     car_serializer = ViewCarSerializer(user_cars, many=True)
     article_serializer = NewsAndArticlesSerilizer(user_posts, many=True)
-    
+    favorite_serializer = Favoriteserializer(user_profile)
     data  = {
 
         'user':[user_serializer.data,user_data],
         'cars' : car_serializer.data,
-        'articles': article_serializer.data
+        'articles': article_serializer.data,
+        'favorites':favorite_serializer.data
     }
     
     return Response(data)
@@ -130,13 +131,13 @@ def ViewOtherProfile(request, profile_id):
         
         return Response(data, status=200)
     
+    if request == 'POST' and request.user.is_authenticated: 
+        if user == request.user.profile:
+            return Response({'error': 'You cannot follow/unfollow yourself'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if user == request.user.profile:
-        return Response({'error': 'You cannot follow/unfollow yourself'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if user.followers.filter(id=request.user.profile.id).exists():
-        user.followers.remove(request.user.profile)
-        return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_200_OK)
-    else:
-        user.followers.add(request.user.profile)
-        return Response({'message': 'Followed successfully'}, status=status.HTTP_200_OK)
+        if user.followers.filter(id=request.user.profile.id).exists():
+            user.followers.remove(request.user.profile)
+            return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_200_OK)
+        else:
+            user.followers.add(request.user.profile)
+            return Response({'message': 'Followed successfully'}, status=status.HTTP_200_OK)
