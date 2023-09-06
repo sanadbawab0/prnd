@@ -74,16 +74,15 @@ def UserProfile(request):
 @permission_classes([IsAuthenticated])
 def Logout(request):
     try:
-        refresh_token = request.data.get('refresh_token')
-
+        refresh_token = request.data.get('access')
+        print(f"Received refresh_token: {refresh_token}")
         refresh_token_obj = RefreshToken(refresh_token)
         refresh_token_obj.blacklist()
-
         return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
-
     except Exception as e:
+        print(f"Error during logout: {str(e)}")
         return Response({'error': 'Unable to log out.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
 def EditProfile(request):
