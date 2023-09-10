@@ -1,5 +1,3 @@
-from django.shortcuts import redirect
-from django.urls import reverse
 from .models import *
 from news_and_articles.models import NewsAndArticles
 from rest_framework.decorators import api_view, permission_classes
@@ -23,25 +21,18 @@ def get_cars(request):
         car_serializer = ViewCarSerializer(car, many = True)
     return Response(car_serializer.data)
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
+def get_car_by_budget(request):
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price') 
+    cars=Car.objects.filter(price__lte=max_price,price__gte=min_price)
+    serializer = CarsByBudgetSerializer(cars,many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
 def home_page(request):
-    if request.method == 'POST':
-
-        min_price = request.data.get('min_price')
-        max_price = request.data.get('max_price')
-        query_params = []
-        if min_price is not None:
-            query_params.append(f'min_price={min_price}')
-        if max_price is not None:
-            query_params.append(f'max_price={max_price}')
-
-        if query_params:
-            query_string = '&'.join(query_params)
-            redirect_url = f'{reverse("all_ads_page")}?{query_string}'
-        return redirect(redirect_url)
-        
     if request.method == 'GET':
-        
         news = NewsAndArticles.objects.all()
         brands = cars_data['Make'].unique()
         body_types = [choice[1] for choice in BODY_CHOICES]
@@ -116,7 +107,6 @@ def get_car_details(request, pk):
     return Response(data)
 
 @api_view(['GET','POST'])
-@permission_classes([IsAuthenticated])
 def all_ads_page(request):
     brands = cars_data['Make'].unique()
     body_types = [choice[1] for choice in BODY_CHOICES]

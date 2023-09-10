@@ -9,7 +9,7 @@ from car.serializers import ViewCarSerializer
 # Create your views here.
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+# @permission_classes([IsAuthenticatedOrReadOnly])
 def news_page(request):
     if request.method == "GET":
         article = NewsAndArticles.objects.all()

@@ -119,6 +119,7 @@ class AllAdsSerializer(serializers.ModelSerializer):
 
 
 class CarReviewSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Review
         fields = '__all__'
@@ -142,7 +143,7 @@ class CarEditSerializer(serializers.ModelSerializer):
         model = Car
         fields = '__all__'  
 
-    brand = serializers.CharField(required=False)
+    brand = serializers.CharField(required=False,source="")
     country = serializers.CharField(required=False)
     release_year = serializers.IntegerField(required=False)
     model = serializers.CharField(required=False)
@@ -150,5 +151,12 @@ class CarEditSerializer(serializers.ModelSerializer):
         if value < 1900:  
             raise serializers.ValidationError("Release year must be later than 1900.")
         return value
-
-
+    
+class CarsByBudgetSerializer(serializers.ModelSerializer):
+    all_prices=serializers.SerializerMethodField()
+    class Meta:
+        model=Car
+        fields=['price','brand','all_prices']
+    def get_all_prices(self,obj):
+        cars=Car.objects.get(brand='BMW')
+        return cars.price * 5

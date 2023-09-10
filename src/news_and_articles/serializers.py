@@ -7,6 +7,7 @@ class NewsAndArticlesSerilizer(serializers.ModelSerializer):
         fields = '__all__'
 
 class NewsAndArticlesReviewSerilizer(serializers.ModelSerializer):
+    
     class Meta:
         model = NewsAndArticlesReview
         fields = '__all__'
