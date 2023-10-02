@@ -1,0 +1,11 @@
+# Ignore database files
+db.sqlite3
+
+# Ignore static and media files
+media/
+
+# Ignore compiled Python files and cache
+__pycache__/
+
+# Ignore migrations
+migrations/
