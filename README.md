@@ -1,5 +1,5 @@
 <h1 align="center">Hi 👋, I'm Sanad AL-Bawab</h1>
-- 🔭 I’m currently working on **PRND**
+- 🔭 I'm currently working on **PRND** - an innovative car shop where you can both buy and sell your own vehicles.
 
 - 🌱 I’m currently learning **Django REST Framework**
 
