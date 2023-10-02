@@ -1,5 +1,5 @@
 from django.contrib import admin
-from car import models  
+from car import models
 # Register your models here.
 admin.site.register(models.Car)
 admin.site.register(models.Tag)
@@ -10,4 +10,3 @@ admin.site.register(models.PriceHistory)
 admin.site.register(models.Review)
 admin.site.register(models.InteriorImage)
 admin.site.register(models.ExteriorImage)
-

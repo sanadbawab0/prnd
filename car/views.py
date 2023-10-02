@@ -13,20 +13,22 @@ from .filters import *
 
 # Create your views here.
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_cars(request):
     if request.method == 'GET':
         car = Car.objects.all()
-        car_serializer = ViewCarSerializer(car, many = True)
+        car_serializer = ViewCarSerializer(car, many=True)
     return Response(car_serializer.data)
+
 
 @api_view(['GET'])
 def get_car_by_budget(request):
     min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price') 
-    cars=Car.objects.filter(price__lte=max_price,price__gte=min_price)
-    serializer = CarsByBudgetSerializer(cars,many=True)
+    max_price = request.GET.get('max_price')
+    cars = Car.objects.filter(price__lte=max_price, price__gte=min_price)
+    serializer = CarsByBudgetSerializer(cars, many=True)
     return Response(serializer.data)
 
 
@@ -36,11 +38,12 @@ def home_page(request):
         news = NewsAndArticles.objects.all()
         brands = cars_data['Make'].unique()
         body_types = [choice[1] for choice in BODY_CHOICES]
-        car_tags = Tag.objects.exclude(tags__isnull=True).values_list('name', flat=True).distinct()
+        car_tags = Tag.objects.exclude(tags__isnull=True).values_list(
+            'name', flat=True).distinct()
         car_fuel_types = [choice[1] for choice in FUEL_CHOICES]
 
         news_serializer = NewsAndArticlesSerilizer(news, many=True)
-        
+
         data = {
             "brands": list(brands),
             "body_types": list(body_types),
@@ -51,38 +54,42 @@ def home_page(request):
 
         return Response(data)
 
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def get_car_details(request, pk):
     try:
-            car = Car.objects.get(id=pk)
-            review = car.get_reviews
-            positive_aspects = car.positive_aspects.all()
-            negative_aspects = car.negative_aspects.all()
-            price_history = PriceHistory.objects.filter(car=car).order_by('date')
-            price_stats = PriceHistory.objects.filter(car=car).aggregate(
-                min_price=Min('price'),
-                max_price=Max('price'),
-                avg_price=Avg('price')
-            )
-            other_cars = Car.objects.exclude(id=pk)
-            competitor_cars = Car.objects.filter(brand__iexact=car.brand).exclude(id=car.id)
+        car = Car.objects.get(id=pk)
+        review = car.get_reviews
+        positive_aspects = car.positive_aspects.all()
+        negative_aspects = car.negative_aspects.all()
+        price_history = PriceHistory.objects.filter(car=car).order_by('date')
+        price_stats = PriceHistory.objects.filter(car=car).aggregate(
+            min_price=Min('price'),
+            max_price=Max('price'),
+            avg_price=Avg('price')
+        )
+        other_cars = Car.objects.exclude(id=pk)
+        competitor_cars = Car.objects.filter(
+            brand__iexact=car.brand).exclude(id=car.id)
 
     except Car.DoesNotExist:
-            return Response({'error': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+        return Response({'error': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
 
         car_serializer = CarDetailsSerializer(car)
-        positive_aspects_serializer = PositiveAspectSerializer(positive_aspects, many=True)
-        negative_aspects_serializer = NegativeAspectSerializer(negative_aspects, many=True)
+        positive_aspects_serializer = PositiveAspectSerializer(
+            positive_aspects, many=True)
+        negative_aspects_serializer = NegativeAspectSerializer(
+            negative_aspects, many=True)
         price_serializer = PriceHistorySerializer(price_history, many=True)
         price_stats_serializer = PriceStatisticsSerializer(price_stats)
-        car_ads_serializer = CarAdsSerializer(other_cars, many = True)
-        competitor_cars_serializer = CompetitorCarSerializer(competitor_cars, many=True)
-        review_serializer = CarReviewSerializer(review, many = True)
-        
+        car_ads_serializer = CarAdsSerializer(other_cars, many=True)
+        competitor_cars_serializer = CompetitorCarSerializer(
+            competitor_cars, many=True)
+        review_serializer = CarReviewSerializer(review, many=True)
+
         data = {
             "car_data": car_serializer.data,
             "positive_aspects": positive_aspects_serializer.data,
@@ -91,22 +98,23 @@ def get_car_details(request, pk):
             "price_history": price_serializer.data,
             "cars_ads": car_ads_serializer.data,
             "competitor_cars": competitor_cars_serializer.data,
-            "review" :review_serializer.data,
-     }
-        
-    if request.method == 'POST' and request.user.is_authenticated :
+            "review": review_serializer.data,
+        }
+
+    if request.method == 'POST' and request.user.is_authenticated:
         user_profile = request.user.profile
         serializer = CarReviewSerializer(data=request.data)
         if serializer.is_valid():
             serializer.validated_data['user'] = user_profile
 
-            serializer.save(post=car)  
+            serializer.save(post=car)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(data)
 
-@api_view(['GET','POST'])
+
+@api_view(['GET', 'POST'])
 def all_ads_page(request):
     brands = cars_data['Make'].unique()
     body_types = [choice[1] for choice in BODY_CHOICES]
@@ -120,26 +128,25 @@ def all_ads_page(request):
 
     if selected_brand:
         brands = selected_brand
-        models = Car.objects.filter(brand=selected_brand).values_list('model', flat=True).distinct()
+        models = Car.objects.filter(brand=selected_brand).values_list(
+            'model', flat=True).distinct()
     else:
         models = []
 
     queryset = Car.objects.all()
     filter_set = CarFilter(request.GET, queryset=queryset)
-    
+
     if filter_set.is_valid():
         queryset = filter_set.qs
         if not queryset.exists():
             return Response({'message': 'No cars found'}, status=200)
     else:
         return Response({'error': 'Invalid filter parameters'}, status=400)
-        
-    
+
     page = request.GET.get('page')
     custom_range, cars = paginatePosts(request, queryset, 10, page)
     car_Serializer = ViewCarSerializer(cars, many=True)
 
-    
     data = {
         'brands': brands,
         'models': models,
@@ -150,8 +157,8 @@ def all_ads_page(request):
         'conditions': condition,
         'customs': custom,
         'cars': car_Serializer.data,
-        'custom_range':list(custom_range),
-        }
+        'custom_range': list(custom_range),
+    }
 
     if request.method == 'POST' and request.user.is_authenticated:
         car_id = request.data.get('id')
@@ -168,13 +175,13 @@ def all_ads_page(request):
             profile.favorite_cars.add(car)
             return Response({'message': 'Car added to favorites'}, status=201)
 
-
     return Response(data)
+
 
 @api_view(['GET'])
 def advanced_search(request):
-     if request.method=='GET':
-        
+    if request.method == 'GET':
+
         brands = cars_data['Make'].unique()
         models = cars_data['Model'].unique()
         body_types = [choice[1] for choice in BODY_CHOICES]
@@ -188,24 +195,25 @@ def advanced_search(request):
 
         if selected_brand:
             brands = selected_brand
-            models = Car.objects.filter(brand=selected_brand).values_list('model', flat=True).distinct()
+            models = Car.objects.filter(brand=selected_brand).values_list(
+                'model', flat=True).distinct()
         else:
             models = []
 
         data = {
-        'brands': brands,
-        'models': models,
-        'body_types': body_types,
-        'transmission_types': transmission_type,
-        'fuel_types': car_fuel_types,
-        'colors': color,
-        'conditions': condition,
-        'customs': custom,
+            'brands': brands,
+            'models': models,
+            'body_types': body_types,
+            'transmission_types': transmission_type,
+            'fuel_types': car_fuel_types,
+            'colors': color,
+            'conditions': condition,
+            'customs': custom,
         }
         return Response(data)
 
 
-@api_view(['POST','GET'])
+@api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def add_car(request):
     if request.method == 'GET':
@@ -217,14 +225,14 @@ def add_car(request):
         condition = [choice[1] for choice in CONDITION_CHOICES]
         custom = [choice[1] for choice in CUSTOM_CHOICES]
         data = {
-        'brands': brands,
+            'brands': brands,
 
-        'body_types': body_types,
-        'transmission_types': transmission_type,
-        'fuel_types': car_fuel_types,
-        'colors': color,
-        'conditions': condition,
-        'customs': custom,
+            'body_types': body_types,
+            'transmission_types': transmission_type,
+            'fuel_types': car_fuel_types,
+            'colors': color,
+            'conditions': condition,
+            'customs': custom,
         }
     if request.method == 'POST' and request.user.is_authenticated:
         serializer = CarSerializer(data=request.data)
@@ -234,13 +242,14 @@ def add_car(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     return Response(data)
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def edit_car(request, pk):
-    
+
     try:
         car = Car.objects.get(id=pk)
     except Car.DoesNotExist:
@@ -255,6 +264,7 @@ def edit_car(request, pk):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['DELETE', 'GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def delete_car(request, pk):
@@ -264,16 +274,9 @@ def delete_car(request, pk):
         return Response({'message': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        car_serializer = ViewCarSerializer(car)  
+        car_serializer = ViewCarSerializer(car)
         return Response(car_serializer.data)
-    
+
     if request.method == 'DELETE' and request.user.is_authenticated:
         car.delete()
         return Response({'message': 'Car deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
-
-    
-
-
-
-

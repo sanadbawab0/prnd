@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', Logout, name='logout'),
     path('edit-profile/', EditProfile, name='edit_profile'),
     path('profiles/', get_profiles, name='get_profiles'),
-    path('other-profile/<str:profile_id>', ViewOtherProfile, name='view_other_profiles'),
+    path('other-profile/<str:profile_id>',
+         ViewOtherProfile, name='view_other_profiles'),
     # Other URL patterns
 ]

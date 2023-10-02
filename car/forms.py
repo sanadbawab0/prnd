@@ -1,6 +1,7 @@
 from django import forms
 from .models import Car, Review
 
+
 class CarFilterForm(forms.ModelForm):
     brand = forms.CharField(required=False)
     model = forms.CharField(required=False)
@@ -15,6 +16,3 @@ class CarFilterForm(forms.ModelForm):
             'transmission_type', 'fuel_type', 'color',
             'condition', 'custom',
         ]
-
-
-
